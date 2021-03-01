@@ -18,6 +18,7 @@ Author: Ben Guiden
 int main()
 {
    char buf[MAX_BUFFER];   // line buffer
+   set_env_var("SHELL");
 
    while(strcmp(buf, "\0"))
    {

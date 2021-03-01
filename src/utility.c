@@ -67,28 +67,43 @@ void do_dir()
    return;
 }
 
+char * curr_dir()
+{
+   char *dir = malloc(MAX_BUFFER);
+   getcwd(dir, MAX_BUFFER);
+   return dir;
+}
+
+void set_env_var(char *var)
+{
+   char * dir;
+   dir = curr_dir();
+   if(!strcmp(var, "SHELL"))
+   {
+      setenv(var, strcat(dir, "/myshell"), 1);
+   }
+   else
+   {
+      setenv(var, dir, 1);
+   }
+   free(dir);
+   return;
+}
+
 // https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.2.0/com.ibm.zos.v2r2.bpxbd00/rputen.htm
 void do_cd(char * dest)
 {
    if(dest == NULL)
    {
-      char dir[MAX_BUFFER];
-      getcwd(dir, MAX_BUFFER);
-      printf("%s\n", dir);
+      printf("%s\n", curr_dir());
       return;
    }
    else if(chdir(dest) == -1)
    {
-      printf("Error: cannot find directory %s\n", dest);
+      printf("Error: cannot find the directory %s\n", dest);
       return;
    }
-   char dir[100];
-   getcwd(dir, MAX_BUFFER);
-   char cwd[MAX_BUFFER];
-   sprintf(cwd, "PWD=%s", dir);
-   char *var = strdup(cwd);
-   int rent;
-   rent = putenv(var);
+   set_env_var("PWD");
    return;
 }
 
