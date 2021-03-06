@@ -9,6 +9,9 @@ Author: Ben Guiden
 #include <stdlib.h> /* a header file with a function we might need */
 #include <string.h>
 #include <dirent.h>  /* some functions need for do_dir */
+#include <errno.h>
+#include <sys/wait.h>
+#include <ctype.h>
 
 #define MAX_BUFFER 1024 // max line buffer
 
@@ -18,6 +21,22 @@ void my_prompt()
    getcwd(dir, MAX_BUFFER);
    printf("%s%s ", dir, ">");
    return;
+}
+
+int word_counter(char * line)
+{
+   int cnt = 0;
+   for(int i = 0; i < strlen(line); i++)
+   {
+      if(line[i] == ' ')
+      {
+         if(line[i + 1] != '\0' && line[i + 1] != ' ')
+         {
+            cnt += 1;
+         }
+      }
+   }
+   return cnt + 1;
 }
 
 void do_quit()
@@ -30,40 +49,63 @@ void do_quit()
 
 void do_clear()
 {
+   pid_t pid = getpid();
    printf("Clearing...\n");
    sleep(1);
-   system("clear");  // use clear command
+   int status;
+   switch (pid = fork ()) { 
+      case -1:
+         exit(EXIT_FAILURE); 
+      case 0:                 // child
+         execlp("clear", "clear", NULL);
+         exit(EXIT_SUCCESS);
+      default:                // parent
+         waitpid(pid, &status, WUNTRACED);
+   } 
    return;
 }
 
 void do_help()
 {
-   system("more ../manual/readme.md");
+   pid_t pid = getpid();
+   int status;
+   switch (pid = fork ()) { 
+      case -1:
+         exit(EXIT_FAILURE); 
+      case 0:                 // child
+         execlp("more", "more", "../manual/readme.md", NULL);
+         exit(EXIT_SUCCESS);
+      default:                // parent
+         waitpid(pid, &status, WUNTRACED);
+   } 
    return;
 }
 
-void do_echo(char * tokens)
+void do_echo(char ** tokens, int count)
 {
-   while(tokens != NULL)
+   for(int i = 1; i < count; i++)
    {
-      printf("%s ", tokens);
-      tokens = strtok(NULL, " ");
+      printf("%s ", tokens[i]);
    }
    printf("\n"); // Print new line
    return;
 }
 
 // https://c-for-dummies.com/blog/?p=3246
-void do_dir()
+void do_dir(char * dest)
 {
-   DIR *folder;
-   struct dirent *file;
-   folder = opendir(".");
-   while((file=readdir(folder)) != NULL)
-   {
-      printf("%s\n", file->d_name);
-   }
-   closedir(folder);
+   pid_t pid = getpid();
+   int status;
+   switch (pid = fork ()) { 
+      case -1:
+         exit(EXIT_FAILURE); 
+      case 0:                 // child
+         printf("Directory: %s\n", dest);
+         execlp("ls", "ls", "-al", dest, NULL);
+         exit(EXIT_SUCCESS);
+      default:                // parent
+         waitpid(pid, &status, WUNTRACED);
+   } 
    return;
 }
 
@@ -116,4 +158,42 @@ void do_environ()
       printf("%s\n", environ[i]);
    }
    return;
+}
+
+void do_pause()
+{
+   char input[MAX_BUFFER];
+   printf("Press [enter] to continue...\n");
+   while(strcmp(input, "\n"))
+   {
+      fgets(input, MAX_BUFFER, stdin);
+   }
+   return;
+}
+
+void execute(char ** tokens, int count, int background)
+{
+   int status;
+   pid_t pid = getpid();
+   switch (pid = fork ()) 
+   { 
+      case -1:
+         exit(EXIT_FAILURE); 
+      case 0:                 // child
+         if(background == 1)
+         {
+            tokens[count - 1] = NULL;
+         }
+         execvp(tokens[0], tokens); 
+         exit(EXIT_SUCCESS);
+      default:                // parent
+         if(background == 0)
+         {
+            waitpid(pid, &status, WUNTRACED);
+         }
+         if(background == 1)
+         {
+            waitpid(pid, &status, WNOHANG);
+         }
+   } 
 }
