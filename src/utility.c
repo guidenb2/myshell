@@ -47,7 +47,7 @@ void do_quit()
    return;
 }
 
-void do_clear()
+void do_clear(int background)
 {
    pid_t pid = getpid();
    printf("Clearing...\n");
@@ -60,7 +60,14 @@ void do_clear()
          execlp("clear", "clear", NULL);
          exit(EXIT_SUCCESS);
       default:                // parent
-         waitpid(pid, &status, WUNTRACED);
+         if(background == 1)
+         {
+            waitpid(pid, &status, WNOHANG);
+         }
+         if(background == 0)
+         {
+            waitpid(pid, &status, WUNTRACED);
+         }
    } 
    return;
 }
@@ -81,18 +88,51 @@ void do_help()
    return;
 }
 
-void do_echo(char ** tokens, int count)
+void do_echo(char ** tokens, int count, int background)
 {
-   for(int i = 1; i < count; i++)
+   if(background == 0)
    {
-      printf("%s ", tokens[i]);
+      for(int i = 1; i < count; i++)
+      {
+         printf("%s ", tokens[i]);
+      }
+   }
+   else
+   {
+      for(int i = 1; i < count - 1; i++)
+      {
+         printf("%s ", tokens[i]);
+      }
    }
    printf("\n"); // Print new line
    return;
 }
 
+void execute_echo(char ** tokens, int count, int background)
+{
+   int status;
+   pid_t pid = getpid();
+   switch (pid = fork ()) 
+   { 
+      case -1:
+         exit(EXIT_FAILURE); 
+      case 0:                 // child
+         do_echo(tokens, count, background);
+         exit(EXIT_SUCCESS);
+      default:                // parent
+         if(background == 0)
+         {
+            waitpid(pid, &status, WUNTRACED);
+         }
+         if(background == 1)
+         {
+            waitpid(pid, &status, WNOHANG);
+         }
+   } 
+}
+
 // https://c-for-dummies.com/blog/?p=3246
-void do_dir(char * dest)
+void do_dir(char * dest, int background)
 {
    pid_t pid = getpid();
    int status;
@@ -104,7 +144,14 @@ void do_dir(char * dest)
          execlp("ls", "ls", "-al", dest, NULL);
          exit(EXIT_SUCCESS);
       default:                // parent
-         waitpid(pid, &status, WUNTRACED);
+         if(background == 0)
+         {
+            waitpid(pid, &status, WUNTRACED);
+         }
+         else
+         {
+            waitpid(pid, &status, WNOHANG);
+         }
    } 
    return;
 }
@@ -171,7 +218,30 @@ void do_pause()
    return;
 }
 
-void execute(char ** tokens, int count, int background)
+void execute_pause(int background)
+{
+   int status;
+   pid_t pid = getpid();
+   switch (pid = fork ()) 
+   { 
+      case -1:
+         exit(EXIT_FAILURE); 
+      case 0:                 // child
+         do_pause();
+         exit(EXIT_SUCCESS);
+      default:                // parent
+         if(background == 0)
+         {
+            waitpid(pid, &status, WUNTRACED);
+         }
+         if(background == 1)
+         {
+            waitpid(pid, &status, WNOHANG);
+         }
+   } 
+}
+
+void fork_execute(char ** tokens, int count, int background)
 {
    int status;
    pid_t pid = getpid();
