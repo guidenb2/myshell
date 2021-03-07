@@ -244,15 +244,28 @@ void execute_pause(int background)
 void fork_execute(char ** tokens, int count, int background)
 {
    int status;
+   int output;
    pid_t pid = getpid();
    switch (pid = fork ()) 
    { 
       case -1:
          exit(EXIT_FAILURE); 
       case 0:                 // child
-         if(background == 1)
+         output = 1;
+         char outFile[MAX_BUFFER];
+         for(int i = 0; i < count; i++)
          {
-            tokens[count - 1] = NULL;
+            if(!strcmp(tokens[i], ">"))
+            {
+               printf("Present\n");
+               tokens[i] = NULL;
+               output = 1;
+               strcpy(outFile, tokens[i + 1]);
+            }
+         }
+         if(output == 1)
+         {
+            freopen(outFile, "w", stdout);
          }
          execvp(tokens[0], tokens); 
          exit(EXIT_SUCCESS);
