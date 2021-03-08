@@ -39,69 +39,110 @@ int word_counter(char * line)
    return cnt + 1;
 }
 
-void do_quit()
+void fork_execute(char ** tokens, int count, int background)
 {
-   printf("Quiting...\n");
-   sleep(1);
-   exit(0);    // exit the program
-   return;
-}
-
-void do_clear(int background)
-{
-   pid_t pid = getpid();
-   printf("Clearing...\n");
-   sleep(1);
    int status;
-   switch (pid = fork ()) { 
+   int output;
+   pid_t pid = getpid();
+   switch (pid = fork ()) 
+   { 
       case -1:
          exit(EXIT_FAILURE); 
       case 0:                 // child
-         execlp("clear", "clear", NULL);
+         output = 0;
+         char outFile[MAX_BUFFER];
+         for(int i = 0; i < count; i++)
+         {
+            if(!strcmp(tokens[i], ">"))
+            {
+               tokens[i] = NULL;
+               output = 1;
+               strcpy(outFile, tokens[i + 1]);
+            }
+            else if(!strcmp(tokens[i], ">>"))
+            {
+               tokens[i] = NULL;
+               output = 2;
+               strcpy(outFile, tokens[i + 1]);
+            }
+         }
+         if(output == 1)
+         {
+            freopen(outFile, "w", stdout);
+         }
+         else if(output == 2)
+         {
+            freopen(outFile, "a", stdout);
+         }
+         execvp(tokens[0], tokens); 
          exit(EXIT_SUCCESS);
       default:                // parent
-         if(background == 1)
-         {
-            waitpid(pid, &status, WNOHANG);
-         }
          if(background == 0)
          {
             waitpid(pid, &status, WUNTRACED);
          }
+         if(background == 1)
+         {
+            waitpid(pid, &status, WNOHANG);
+         }
    } 
+}
+
+void do_quit()
+{
+   exit(0);    // exit the program
    return;
 }
 
-void do_help()
+void do_clear(char ** tokens, int background, int count)
 {
-   pid_t pid = getpid();
-   int status;
-   switch (pid = fork ()) { 
-      case -1:
-         exit(EXIT_FAILURE); 
-      case 0:                 // child
-         execlp("more", "more", "../manual/readme.md", NULL);
-         exit(EXIT_SUCCESS);
-      default:                // parent
-         waitpid(pid, &status, WUNTRACED);
-   } 
+   for(int i = 0; i < count; i++)
+   {
+      if(!strcmp(tokens[i], "clr"))
+      {
+         tokens[i] = "clear";
+      }
+   }
+   fork_execute(tokens, count, background);
    return;
+}
+
+void do_help(char ** tokens, char * path, int background, int count)
+{
+   int size = count + 2;
+   char *args[size];
+   args[0] = "more";
+   args[1] = path;
+   int i = 2;
+   int j = 1;
+   while(tokens[j] != NULL)
+   {
+      args[i] = tokens[j];
+      i++;
+      j++;
+   }
+   args[size - 1] = NULL;
+   i = 0;
+   fork_execute(args, count, background);
 }
 
 void do_echo(char ** tokens, int count, int background)
 {
+   int i = 1;
    if(background == 0)
    {
-      for(int i = 1; i < count; i++)
+      while(tokens[i] != NULL)
       {
          printf("%s ", tokens[i]);
+         i++;
       }
    }
    else
    {
-      for(int i = 1; i < count - 1; i++)
+      while(tokens[i] != NULL && i < count - 1)
       {
          printf("%s ", tokens[i]);
+         i++;
       }
    }
    printf("\n"); // Print new line
@@ -111,12 +152,38 @@ void do_echo(char ** tokens, int count, int background)
 void execute_echo(char ** tokens, int count, int background)
 {
    int status;
+   int output;
    pid_t pid = getpid();
    switch (pid = fork ()) 
    { 
       case -1:
          exit(EXIT_FAILURE); 
       case 0:                 // child
+         output = 0;
+         char outFile[MAX_BUFFER];
+         for(int i = 0; i < count; i++)
+         {
+            if(!strcmp(tokens[i], ">"))
+            {
+               tokens[i] = NULL;
+               output = 1;
+               strcpy(outFile, tokens[i + 1]);
+            }
+            else if(!strcmp(tokens[i], ">>"))
+            {
+               tokens[i] = NULL;
+               output = 2;
+               strcpy(outFile, tokens[i + 1]);
+            }
+         }
+         if(output == 1)
+         {
+            freopen(outFile, "w", stdout);
+         }
+         else if(output == 2)
+         {
+            freopen(outFile, "a", stdout);
+         }
          do_echo(tokens, count, background);
          exit(EXIT_SUCCESS);
       default:                // parent
@@ -132,28 +199,23 @@ void execute_echo(char ** tokens, int count, int background)
 }
 
 // https://c-for-dummies.com/blog/?p=3246
-void do_dir(char * dest, int background)
+void do_dir(char ** tokens, int count, int background)
 {
-   pid_t pid = getpid();
-   int status;
-   switch (pid = fork ()) { 
-      case -1:
-         exit(EXIT_FAILURE); 
-      case 0:                 // child
-         printf("Directory: %s\n", dest);
-         execlp("ls", "ls", "-al", dest, NULL);
-         exit(EXIT_SUCCESS);
-      default:                // parent
-         if(background == 0)
-         {
-            waitpid(pid, &status, WUNTRACED);
-         }
-         else
-         {
-            waitpid(pid, &status, WNOHANG);
-         }
-   } 
-   return;
+   int size = count + 2;
+   char *args[size];
+   args[0] = "ls";
+   args[1] = "-al";
+   int i = 2;
+   int j = 1;
+   while(tokens[j] != NULL)
+   {
+      args[i] = tokens[j];
+      i++;
+      j++;
+   }
+   args[size - 1] = NULL;
+   i = 0;
+   fork_execute(args, count, background);
 }
 
 char * curr_dir()
@@ -207,27 +269,42 @@ void do_environ()
    return;
 }
 
-void do_pause()
-{
-   char input[MAX_BUFFER];
-   printf("Press [enter] to continue...\n");
-   while(strcmp(input, "\n"))
-   {
-      fgets(input, MAX_BUFFER, stdin);
-   }
-   return;
-}
-
-void execute_pause(int background)
+void execute_environ(char ** tokens, int count, int background)
 {
    int status;
+   int output;
    pid_t pid = getpid();
    switch (pid = fork ()) 
    { 
       case -1:
          exit(EXIT_FAILURE); 
       case 0:                 // child
-         do_pause();
+         output = 0;
+         char outFile[MAX_BUFFER];
+         for(int i = 0; i < count; i++)
+         {
+            if(!strcmp(tokens[i], ">"))
+            {
+               tokens[i] = NULL;
+               output = 1;
+               strcpy(outFile, tokens[i + 1]);
+            }
+            else if(!strcmp(tokens[i], ">>"))
+            {
+               tokens[i] = NULL;
+               output = 2;
+               strcpy(outFile, tokens[i + 1]);
+            }
+         }
+         if(output == 1)
+         {
+            freopen(outFile, "w", stdout);
+         }
+         else if(output == 2)
+         {
+            freopen(outFile, "a", stdout);
+         }
+         do_environ();
          exit(EXIT_SUCCESS);
       default:                // parent
          if(background == 0)
@@ -241,7 +318,18 @@ void execute_pause(int background)
    } 
 }
 
-void fork_execute(char ** tokens, int count, int background)
+void do_pause()
+{
+   char input[MAX_BUFFER];
+   printf("Press [enter] to continue...\n");
+   while(strcmp(input, "\n"))
+   {
+      fgets(input, MAX_BUFFER, stdin);
+   }
+   return;
+}
+
+void execute_pause(char ** tokens, int count, int background)
 {
    int status;
    int output;
@@ -251,15 +339,20 @@ void fork_execute(char ** tokens, int count, int background)
       case -1:
          exit(EXIT_FAILURE); 
       case 0:                 // child
-         output = 1;
+         output = 0;
          char outFile[MAX_BUFFER];
          for(int i = 0; i < count; i++)
          {
             if(!strcmp(tokens[i], ">"))
             {
-               printf("Present\n");
                tokens[i] = NULL;
                output = 1;
+               strcpy(outFile, tokens[i + 1]);
+            }
+            else if(!strcmp(tokens[i], ">>"))
+            {
+               tokens[i] = NULL;
+               output = 2;
                strcpy(outFile, tokens[i + 1]);
             }
          }
@@ -267,7 +360,11 @@ void fork_execute(char ** tokens, int count, int background)
          {
             freopen(outFile, "w", stdout);
          }
-         execvp(tokens[0], tokens); 
+         else if(output == 2)
+         {
+            freopen(outFile, "a", stdout);
+         }
+         do_pause();
          exit(EXIT_SUCCESS);
       default:                // parent
          if(background == 0)

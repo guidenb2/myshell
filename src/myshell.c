@@ -21,6 +21,9 @@ Author: Ben Guiden
 int main(int argc, char * argv[])
 {
    int count;
+   char *manualPath = malloc(strlen(curr_dir()) + strlen("/../manual/readme") + 1); // +1 for the null-terminator
+   strcpy(manualPath, curr_dir());
+   strcat(manualPath, "/../manual/readme");
    int background;
    FILE * fp;
    set_env_var("SHELL");
@@ -86,30 +89,22 @@ int main(int argc, char * argv[])
 
       else if(strcmp(arg, "clr") == 0)  // run clear function if arg = clear
       {
-         do_clear(background);
+         do_clear(args, background, count);
       }
 
       else if(strcmp(arg, "pause") == 0)  // run clear function if arg = clear
       {
-         execute_pause(background);
+         execute_pause(args, count, background);
       }
 
       else if(strcmp(arg, "help") == 0)
       {
-         do_help(args, background, count);
+         do_help(args, manualPath, background, count);
       }
 
       else if(strcmp(arg, "dir") == 0)
       {
-         char * dest = args[1];
-         if(count > 1)
-         {
-            do_dir(dest, background);
-         }
-         else
-         {
-            do_dir(".", background);
-         }
+         do_dir(args, count, background);
       }
 
       else if(strcmp(arg, "echo") == 0)
@@ -119,19 +114,26 @@ int main(int argc, char * argv[])
 
       else if(strcmp(arg, "cd") == 0)
       {
-         if(count > 1)
+         if(count == 1)
          {
-            do_cd(args[1]);
+            do_dir(args, count, background);
          }
-         else
+         else if(count > 1)
          {
-            do_dir(".", background);
+            if(!strcmp(args[1], ">") || !strcmp(args[1], ">>"))
+            {
+               do_dir(args, count, background);
+            }
+            else
+            {
+               do_cd(args[1]);
+            }
          }
       }
 
       else if(strcmp(arg, "environ") == 0)
       {
-         do_environ();
+         execute_environ(args, count, background);
       }
 
       else
