@@ -43,6 +43,7 @@ void fork_execute(char ** tokens, int count, int background)
 {
    int status;
    int output;
+   int input;
    pid_t pid = getpid();
    switch (pid = fork ()) 
    { 
@@ -50,7 +51,9 @@ void fork_execute(char ** tokens, int count, int background)
          exit(EXIT_FAILURE); 
       case 0:                 // child
          output = 0;
+         input = 0;
          char outFile[MAX_BUFFER];
+         char inFile[MAX_BUFFER];
          for(int i = 0; i < count; i++)
          {
             if(!strcmp(tokens[i], ">"))
@@ -65,6 +68,12 @@ void fork_execute(char ** tokens, int count, int background)
                output = 2;
                strcpy(outFile, tokens[i + 1]);
             }
+            else if(!strcmp(tokens[i], "<"))
+            {
+               tokens[i] = NULL;
+               input = 1;
+               strcpy(inFile, tokens[i + 1]);
+            }
          }
          if(output == 1)
          {
@@ -73,6 +82,10 @@ void fork_execute(char ** tokens, int count, int background)
          else if(output == 2)
          {
             freopen(outFile, "a", stdout);
+         }
+         if(input == 1)
+         {
+            freopen(inFile, "r", stdin);
          }
          execvp(tokens[0], tokens); 
          exit(EXIT_SUCCESS);
@@ -149,55 +162,6 @@ void do_echo(char ** tokens, int count, int background)
    return;
 }
 
-void execute_echo(char ** tokens, int count, int background)
-{
-   int status;
-   int output;
-   pid_t pid = getpid();
-   switch (pid = fork ()) 
-   { 
-      case -1:
-         exit(EXIT_FAILURE); 
-      case 0:                 // child
-         output = 0;
-         char outFile[MAX_BUFFER];
-         for(int i = 0; i < count; i++)
-         {
-            if(!strcmp(tokens[i], ">"))
-            {
-               tokens[i] = NULL;
-               output = 1;
-               strcpy(outFile, tokens[i + 1]);
-            }
-            else if(!strcmp(tokens[i], ">>"))
-            {
-               tokens[i] = NULL;
-               output = 2;
-               strcpy(outFile, tokens[i + 1]);
-            }
-         }
-         if(output == 1)
-         {
-            freopen(outFile, "w", stdout);
-         }
-         else if(output == 2)
-         {
-            freopen(outFile, "a", stdout);
-         }
-         do_echo(tokens, count, background);
-         exit(EXIT_SUCCESS);
-      default:                // parent
-         if(background == 0)
-         {
-            waitpid(pid, &status, WUNTRACED);
-         }
-         if(background == 1)
-         {
-            waitpid(pid, &status, WNOHANG);
-         }
-   } 
-}
-
 // https://c-for-dummies.com/blog/?p=3246
 void do_dir(char ** tokens, int count, int background)
 {
@@ -269,55 +233,6 @@ void do_environ()
    return;
 }
 
-void execute_environ(char ** tokens, int count, int background)
-{
-   int status;
-   int output;
-   pid_t pid = getpid();
-   switch (pid = fork ()) 
-   { 
-      case -1:
-         exit(EXIT_FAILURE); 
-      case 0:                 // child
-         output = 0;
-         char outFile[MAX_BUFFER];
-         for(int i = 0; i < count; i++)
-         {
-            if(!strcmp(tokens[i], ">"))
-            {
-               tokens[i] = NULL;
-               output = 1;
-               strcpy(outFile, tokens[i + 1]);
-            }
-            else if(!strcmp(tokens[i], ">>"))
-            {
-               tokens[i] = NULL;
-               output = 2;
-               strcpy(outFile, tokens[i + 1]);
-            }
-         }
-         if(output == 1)
-         {
-            freopen(outFile, "w", stdout);
-         }
-         else if(output == 2)
-         {
-            freopen(outFile, "a", stdout);
-         }
-         do_environ();
-         exit(EXIT_SUCCESS);
-      default:                // parent
-         if(background == 0)
-         {
-            waitpid(pid, &status, WUNTRACED);
-         }
-         if(background == 1)
-         {
-            waitpid(pid, &status, WNOHANG);
-         }
-   } 
-}
-
 void do_pause()
 {
    char input[MAX_BUFFER];
@@ -329,7 +244,7 @@ void do_pause()
    return;
 }
 
-void execute_pause(char ** tokens, int count, int background)
+void execute_internal_command(char * command, char ** tokens, int count, int background)
 {
    int status;
    int output;
@@ -364,7 +279,18 @@ void execute_pause(char ** tokens, int count, int background)
          {
             freopen(outFile, "a", stdout);
          }
-         do_pause();
+         if(!strcmp(command, "echo"))
+         {
+            do_echo(tokens, count, background);
+         }
+         else if(!strcmp(command, "environ"))
+         {
+            do_environ();
+         }
+         else if(!strcmp(command, "pause"))
+         {
+            do_pause();
+         }
          exit(EXIT_SUCCESS);
       default:                // parent
          if(background == 0)

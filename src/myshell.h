@@ -19,5 +19,5 @@ void do_environ();
 void execute_environ(char ** tokens, int count, int background);
 void set_env_var(char *var);
 void do_pause();
-void execute_pause(char ** tokens, int count, int background);
+void execute_internal_command(char * command, char ** tokens, int count, int background);
 void fork_execute(char ** tokens, int count, int background);

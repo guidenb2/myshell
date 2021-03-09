@@ -24,7 +24,7 @@ int main(int argc, char * argv[])
    char *manualPath = malloc(strlen(curr_dir()) + strlen("/../manual/readme") + 1); // +1 for the null-terminator
    strcpy(manualPath, curr_dir());
    strcat(manualPath, "/../manual/readme");
-   int background;
+   int background = 0;
    FILE * fp;
    set_env_var("SHELL");
 
@@ -69,13 +69,12 @@ int main(int argc, char * argv[])
       }
       args[sizeof args / sizeof args[0]] = NULL;
       char * arg = args[0];
-      if(strcmp(args[count - 1], "&") == 0)
+      for(int i = 0; i < count; i++)
       {
-         background = 1;
-      }
-      else
-      {
-         background = 0;
+         if(strcmp(args[i], "&") == 0)
+         {
+            background = 1;
+         }
       }
       if(strlen(arg) == 0)
       {
@@ -94,7 +93,7 @@ int main(int argc, char * argv[])
 
       else if(strcmp(arg, "pause") == 0)  // run clear function if arg = clear
       {
-         execute_pause(args, count, background);
+         execute_internal_command("pause", args, count, background);
       }
 
       else if(strcmp(arg, "help") == 0)
@@ -109,7 +108,7 @@ int main(int argc, char * argv[])
 
       else if(strcmp(arg, "echo") == 0)
       {
-         execute_echo(args, count, background);
+         execute_internal_command("echo", args, count, background);
       }
 
       else if(strcmp(arg, "cd") == 0)
@@ -133,7 +132,7 @@ int main(int argc, char * argv[])
 
       else if(strcmp(arg, "environ") == 0)
       {
-         execute_environ(args, count, background);
+         execute_internal_command("environ", args, count, background);
       }
 
       else
