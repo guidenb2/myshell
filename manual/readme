@@ -27,19 +27,29 @@ COMMANDS
 
    pause - pause the shell program until the 'Enter' key is pressed
 
+   calender - displays a calender of the current month with the current date highlighted
+
    quit - quit the shell
 
 I/O REDIRECTION
-   Text
+   This is the redirecting of standard input or standard output. Standard input usually comes from the command line but can be taken from a file if the following is provided: COMMANDNAME < input.txt. This would make our stdin come from input.txt rather than from the command line. Input is taken until the EOF is reached. 
+   Output can be redirected to by: COMMANDNAME > output.txt OR COMMANDNAME >> output.txt. Output would be redirected to the file output.txt and wouldn't be output to the terminal. > overwrites the contents of output.txt but >> appends to output.txt 
 
 ENVIRONMENT
    Text
 
 BACKGROUND EXECUTION
-   Text
+   If a process is run in the background, the parent process does NOT wait for it to finish before receiving more user input. A background process is a process that is run independently[2]. If a terminal launches a background process, the same terminal can execute other commands without waiting for the background process to finish.
+   To run a command in the background use '&' after the command, i.e. COMMANDNAME [ARG] &
 
 REFERENCES
-   1.
-   2.
+   1. https://www.digitalocean.com/community/tutorials/an-introduction-to-linux-i-o-redirection
+   2. The free version of https://study.com/academy/lesson/background-processes-in-linux-definition-manipulation.html
    3.
    4.
+
+INFO
+   author: Ben Guiden
+   student number: 19310046
+   email: ben.guiden2@mail.dcu.ie
+   I have read and understood the DCU Academic Integrity and Plagiarism Policy. All work is my own unless indicated otherwise.
