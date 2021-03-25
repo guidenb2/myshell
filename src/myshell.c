@@ -114,7 +114,7 @@ int main(int argc, char * argv[])
       if(!strcmp(arg, "quit"))  // run quit function if arg = quit
       {
          free(manualPath);
-         do_quit(args, background, count);   // Call the do_quit command from utility.c
+         do_quit();   // Call the do_quit command from utility.c
       }
 
       else if(!strcmp(arg, "clr"))  // run clear function if arg = clear
@@ -156,7 +156,7 @@ int main(int argc, char * argv[])
             }
             else
             {
-               do_cd(args[1]);   // If a dir is provided, change to it
+               do_cd(args, background);   // If a dir is provided, change to it
             }
          }
       }

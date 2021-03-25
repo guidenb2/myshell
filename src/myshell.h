@@ -22,7 +22,7 @@ void do_help(char ** tokens, char * path, int background, int count);
 void do_echo(char ** tokens, int count, int background);
 void do_dir(char ** tokens, int count, int background);
 char * curr_dir();
-void do_cd(char * dest);
+void do_cd(char ** tokens, int background);
 void do_environ();
 void set_env_var(char *var);
 void do_pause();

@@ -236,15 +236,37 @@ void set_env_var(char *var)
 }
 
 /* Change directory to dest */
-void do_cd(char * dest)
+void do_cd(char ** tokens, int background)
 {
-   if(chdir(dest) == -1)   // Try to change directory, if it fails enter report failure and exit function
+   if(background == 0)
    {
-      printf("Error: cannot find the directory %s\n", dest);
+      if(chdir(tokens[1]) == -1)   // Try to change directory, if it fails enter report failure and exit function
+      {
+         printf("Error: cannot find the directory %s\n", tokens[1]);
+         return;
+      }
+      set_env_var("PWD");  // otherwise set PWD var to current directory
       return;
    }
-   set_env_var("PWD");  // otherwise set PWD var to current directory
-   return;
+   else
+   {
+      int status; // Used to hold status
+      pid_t pid = getpid();
+      switch (pid = fork ()) 
+      { 
+         case -1: // failure
+            exit(EXIT_FAILURE); 
+         case 0:                 // child proccess
+            if(chdir(tokens[1]) == -1)   // Try to change directory, if it fails enter report failure and exit function
+            {
+               printf("Error: cannot find the directory %s\n", tokens[1]);
+               return;
+            }
+            exit(EXIT_SUCCESS);
+         default:                // parent process
+            waitpid(pid, &status, WNOHANG);
+      }
+   }
 }
 
 /* Print all environment string variables */
