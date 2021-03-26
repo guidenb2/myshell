@@ -11,31 +11,32 @@ SYNOPSIS
    Batchfile and i/o redirection are optional.
 
 DESCRIPTION
-   myshell is shell program that allows the user to input commands. The program is a command line interpreter
+   myshell is shell program that allows the user to input commands. The program is a command line interpreter. The user can either enter commands in the command line or from a batchfile. A batchfile must end with a blank newline.
+   By default, a command runs in the foreground but can also be run in the background.
 
 COMMANDS
-   cd [DIR] - change to directory DIR. If no nothing entered for DIR, the current working directory is printed
+   cd [DIR] - change to the directory DIR. If no directory is entered for DIR, the current working directory is printed. The command also checks if DIR exists.
 
    clr - clears the screen
 
-   dir - list files and directories in current directory 
+   dir - list all of the files and directories in the current directory 
 
-   environ - lists all environment strings
+   environ - lists all the environment strings
 
-   echo [ARG] - prints ARG
+   echo [ARG] - prints ARG.
 
-   help - displays user manual
+   help - displays the user manual using the more filter.
 
-   pause - pause the shell program until the 'Enter' key is pressed
+   pause - pause the shell program until the 'Enter' key is pressed.
 
-   calender - displays a calender of the current month with the current date highlighted
+   calender - displays a calender of the current month with the current date highlighted.
 
-   quit - quit the shell
+   quit - exit the shell program.
 
 I/O REDIRECTION
-   This is the redirecting of standard input or standard output. Standard input usually comes from the command line but can be taken from a file if the following is provided: COMMANDNAME < input.txt. This would make our stdin come from input.txt rather than from the command line. Input is taken until the EOF is reached. 
-   Output can be redirected to by: COMMANDNAME > output.txt OR COMMANDNAME >> output.txt. Output would be redirected to the file output.txt and wouldn't be output to the terminal. > overwrites the contents of output.txt but >> appends to output.txt 
-   Allowing the manipulation of the different I/O streams in your environment will greatly increase the productivity of a program[1].
+   This is the redirecting of standard input or standard output. Standard input usually comes from the command line but can be taken from a file if the following is provided: COMMANDNAME < input.txt. This would make our stdin come from input.txt rather than from the command line. Input is taken until the EOF is reached. If input.txt contained "The Long And Winding Road", echo < input.txt would print "The Long And Winding Road". 
+   Output can be redirected to by: COMMANDNAME > output.txt OR COMMANDNAME >> output.txt. Output would be redirected to the file output.txt and wouldn't be outputted to the terminal. The symbol '>' overwrites the contents of output.txt but the symbol '>>' appends to output.txt. Append means that the output would just be added to the end of output.txt.
+   Allowing the manipulation of the different I/O streams in your environment will greatly increase the productivity of a program[1]. I/O redirection should be a basic requirement in any shell program.
 
 ENVIRONMENT
    The command environ is used to display all of the environment variables. Environment variables are variables set outside the program. An environment variable has a name and a value. These values can be used in programs.
