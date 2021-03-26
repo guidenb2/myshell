@@ -42,6 +42,7 @@ ENVIRONMENT
    Values of environment variables can be changed inside programs. Such as how PWD variable is changed when the cd command is used in this shell. New environment variables can also be added in programs. This also happens in this program as a environment variable myshell is created.
 
 BACKGROUND EXECUTION
+   When a command is run, it is run in a process. Each process has a unique process ID which is used to identify it. A process can be executed in either the foreground or background.
    If a process is run in the foreground, the parent process must wait for the child process to finish before launching any new processes.
    If a process is run in the background, the parent process does NOT wait for it to finish before receiving more user input. A background process is a process that is run independently[2]. If a terminal launches a background process, the same terminal can execute other commands without waiting for the background process to finish.
    To run a command in the background use '&' after the command, i.e. COMMANDNAME [ARG] &
@@ -51,6 +52,7 @@ REFERENCES
    2. Mario Giuffrida. Background Process in Linux: Definition & Manipulation. The free version available at: https://study.com/academy/lesson/background-processes-in-linux-definition-manipulation.html
    3. tutorialspoint. C library function - freopen(). Available at: https://www.tutorialspoint.com/c_standard_library/c_function_freopen.htm
    4. Jim Medlock, 2018. An Introduction to Environment Variables and How to Use Them. Available at: https://medium.com/chingu/an-introduction-to-environment-variables-and-how-to-use-them-f602f66d15fa
+   5. tutorialspoint. Unix / Linux - Process Management. Available at: https://www.tutorialspoint.com/unix/unix-processes.htm#:~:text=When%20you%20execute%20a%20program,special%20environment%20for%20that%20program.&text=A%20process%2C%20in%20simple%20terms,pid%20or%20the%20process%20ID.
 
 INFO
    author: Ben Guiden
